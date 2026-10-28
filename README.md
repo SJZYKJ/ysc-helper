@@ -11,6 +11,15 @@ docker pull chungg/ysc-helper:latest          # Docker Hub
 docker pull ghcr.io/sjzykj/ysc-helper:latest  # GitHub Container Registry（CI 自动构建）
 ```
 
+一行起服务（数据在 `/root/ysc`、对外 3080、带 Basic Auth，详见 [docs/DEPLOY.md](docs/DEPLOY.md)）：
+
+```bash
+mkdir -p /root/ysc && chown -R 10001:10001 /root/ysc
+docker run -d --name ysc-helper -p 3080:8080 -v /root/ysc:/app/data \
+  -e TZ=Asia/Shanghai -e BASIC_AUTH='用户名:密码' \
+  --restart unless-stopped chungg/ysc-helper:latest
+```
+
 把原 `影视仓接口助手_1.0.apk`（82 KB 的 WebView 壳 + 单文件 HTML）改造成**不依赖 Android、可网页访问、可 Docker 部署**的服务。
 
 原 APK 的全部逻辑都在 `assets/index.html` 里：抓取公开线路 → 递归识别单仓/多仓 → 多采样测速 → 生成影视仓可直接导入的 `{"urls":[...]}` 配置。
@@ -92,47 +101,87 @@ $env:PORT=9000; node server.mjs               # Windows PowerShell
 
 ## Docker 部署
 
-### 方式零：直接用已发布镜像（最快）
+> 下面示例按"宿主机数据目录 `/root/ysc`、对外端口 `3080`"写。端口映射格式是 `-p 宿主:容器`，
+> 容器内固定监听 8080，所以自定义端口只改冒号**左边**。完整服务器清单见 [docs/DEPLOY.md](docs/DEPLOY.md)。
+
+### 方式一：一条命令版（服务器上最常用）
+
+```bash
+# 数据挂宿主机 /root/ysc，宿主 3080 → 容器 8080，开 Basic Auth 供外网访问
+mkdir -p /root/ysc
+chown -R 10001:10001 /root/ysc        # 容器内是非 root(uid 10001)，不改属主历史写不进去
+
+docker run -d --name ysc-helper \
+  -p 3080:8080 \
+  -v /root/ysc:/app/data \
+  -e TZ=Asia/Shanghai \
+  -e BASIC_AUTH='用户名:密码' \
+  --restart unless-stopped \
+  chungg/ysc-helper:latest
+
+# 打开 http://<服务器IP>:3080
+```
+
+不想管目录属主就换命名卷（数据在 Docker 卷 `ysc-data` 里，开箱即用）：
 
 ```bash
 docker run -d --name ysc-helper \
-  -p 8080:8080 \
+  -p 3080:8080 \
   -v ysc-data:/app/data \
   -e TZ=Asia/Shanghai \
+  -e BASIC_AUTH='用户名:密码' \
   --restart unless-stopped \
   chungg/ysc-helper:latest
-# 打开 http://<服务器IP>:8080
 ```
 
-### 方式一：compose（推荐，自己构建）
+### 方式二：compose 版（长期维护推荐）
+
+用宿主机目录 `/root/ysc` 持久化、对外 3080 —— 把 `docker-compose.yml` 换成：
+
+```yaml
+services:
+  ysc-helper:
+    image: chungg/ysc-helper:latest
+    container_name: ysc-helper
+    ports:
+      - "3080:8080"
+    environment:
+      TZ: Asia/Shanghai
+      BASIC_AUTH: "${BASIC_AUTH:?请先在 .env 里设置 BASIC_AUTH}"
+    volumes:
+      - /root/ysc:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/api/health').then(r=>r.json()).then(j=>process.exit(j&&j.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
+```
+
+同目录放 `.env`：
 
 ```bash
+BASIC_AUTH=用户名:密码
+```
+
+启动与升级：
+
+```bash
+mkdir -p /root/ysc && chown -R 10001:10001 /root/ysc
 docker compose up -d
-# 访问 http://<服务器IP>:8080
+
+# 以后升级（历史数据在 /root/ysc 里，不受影响）
+docker compose pull && docker compose up -d
 ```
 
-`docker-compose.yml` 已配好命名卷 `ysc-data`、`TZ=Asia/Shanghai`、健康检查与自动重启。
+> 仓库自带的 `docker-compose.yml` 是**本地构建**版（`build:` + 命名卷 `ysc-data` + `.env.example` 模板），
+> 要改代码或换内置线路源时用那个：`cp .env.example .env` 后 `docker compose up -d --build`。
+>
+> **为什么容器内是非 root**：镜像里用 `nodejs`(uid/gid 10001) 运行，绑定挂载宿主机目录时必须先 `chown`
+> 把属主改成 10001，否则历史记录写不进去（页面照常能用，只是历史静默失败）。命名卷则无需处理。
 
-公网部署先复制环境变量模板（compose 会自动读取同目录 `.env`）：
-
-```bash
-cp .env.example .env      # 然后编辑里面的 BASIC_AUTH=用户名:密码
-docker compose up -d --build
-```
-
-> **为什么用命名卷而不是 `./data`**：容器以非 root（uid 10001）运行，Linux 上直接绑定挂载宿主机目录会因属主不符而写不了历史。
-> 命名卷首次创建时会继承镜像里 `/app/data` 的属主，开箱即用。
-> 若确实要用宿主机目录备份，改成 `- ./data:/app/data` 并先执行 `mkdir -p data && sudo chown -R 10001:10001 data`。
-
-**拉不到基础镜像时**（Docker Hub 在国内常超时）：基础镜像可用构建参数替换，例如
-
-```bash
-BASE_IMAGE=docker.1ms.run/library/node:22-alpine docker compose up -d --build
-# 或
-docker build --build-arg BASE_IMAGE=docker.1ms.run/library/node:22-alpine -t ysc-helper:1.0.0 .
-```
-
-### 方式二：纯 docker
+### 方式三：自己构建镜像（改代码 / 换内置线路源时用）
 
 ```bash
 docker build -t ysc-helper:1.0.0 .
@@ -144,16 +193,24 @@ docker run -d --name ysc-helper \
   ysc-helper:1.0.0
 ```
 
-（要挂宿主机目录就换成 `-v "$PWD/data:/app/data"`，并先 `sudo chown -R 10001:10001 data`；
-想对外开 Basic Auth 再加 `-e BASIC_AUTH=user:pass`。）
+（要挂宿主机目录就换成 `-v /root/ysc:/app/data`，并先 `sudo chown -R 10001:10001 /root/ysc`；
+想对外开 Basic Auth 再加 `-e BASIC_AUTH='user:pass'`；端口同理加 `-p 3080:8080`。）
+
+**拉不到基础镜像时**（Docker Hub 在国内常超时）：基础镜像可用构建参数替换，例如
+
+```bash
+BASE_IMAGE=docker.1ms.run/library/node:22-alpine docker compose up -d --build
+# 或
+docker build --build-arg BASE_IMAGE=docker.1ms.run/library/node:22-alpine -t ysc-helper:1.0.0 .
+```
 
 ### 反向代理（可选）
 
-放在 Nginx / Caddy 后面时注意 **SSE 不能缓冲**，否则进度条会一直卡在 0%：
+对外的 3080 一般再套一层 HTTPS（Basic Auth 是明文）。注意 **SSE 不能缓冲**，否则进度条会一直卡在 0%：
 
 ```nginx
 location / {
-    proxy_pass http://127.0.0.1:8080;
+    proxy_pass http://127.0.0.1:3080;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header Connection "";
@@ -162,7 +219,7 @@ location / {
 }
 ```
 
-Caddy 默认不缓冲，直接 `reverse_proxy 127.0.0.1:8080` 即可。
+Caddy 默认不缓冲，直接 `reverse_proxy 127.0.0.1:3080` 即可（自动签证书）。
 
 ## 环境变量
 
