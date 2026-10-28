@@ -1,5 +1,16 @@
 # 影视仓接口助手 · Web / Docker 版
 
+[![Docker Pulls](https://img.shields.io/docker/pulls/chungg/ysc-helper)](https://hub.docker.com/r/chungg/ysc-helper)
+[![Image Size](https://img.shields.io/docker/image-size/chungg/ysc-helper/latest)](https://hub.docker.com/r/chungg/ysc-helper)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/SJZYKJ/ysc-helper/docker-publish.yml?label=build)](https://github.com/SJZYKJ/ysc-helper/actions)
+
+镜像已发布，可直接用，不用自己构建：
+
+```bash
+docker pull chungg/ysc-helper:latest          # Docker Hub
+docker pull ghcr.io/sjzykj/ysc-helper:latest  # GitHub Container Registry（CI 自动构建）
+```
+
 把原 `影视仓接口助手_1.0.apk`（82 KB 的 WebView 壳 + 单文件 HTML）改造成**不依赖 Android、可网页访问、可 Docker 部署**的服务。
 
 原 APK 的全部逻辑都在 `assets/index.html` 里：抓取公开线路 → 递归识别单仓/多仓 → 多采样测速 → 生成影视仓可直接导入的 `{"urls":[...]}` 配置。
@@ -81,7 +92,19 @@ $env:PORT=9000; node server.mjs               # Windows PowerShell
 
 ## Docker 部署
 
-### 方式一：compose（推荐）
+### 方式零：直接用已发布镜像（最快）
+
+```bash
+docker run -d --name ysc-helper \
+  -p 8080:8080 \
+  -v ysc-data:/app/data \
+  -e TZ=Asia/Shanghai \
+  --restart unless-stopped \
+  chungg/ysc-helper:latest
+# 打开 http://<服务器IP>:8080
+```
+
+### 方式一：compose（推荐，自己构建）
 
 ```bash
 docker compose up -d
