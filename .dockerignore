@@ -1,0 +1,16 @@
+# 构建上下文瘦身：这些内容不进镜像
+.git
+.gitignore
+node_modules
+data
+test
+reference
+docs
+*.md
+!README.md
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*

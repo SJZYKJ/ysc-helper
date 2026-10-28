@@ -1,0 +1,27 @@
+# 原 APK 解包产物：仅本地存档对照，不随仓库分发
+# （内含第三方 App 的 index.html / classes.dex / 签名文件，公开仓库分发有版权风险）
+# 若你确认有权分发，删掉下面这行即可把 reference/apk/ 一起提交
+reference/apk/
+
+# 运行时数据（历史记录落盘目录）
+data/
+
+# 依赖（本项目零依赖，预留）
+node_modules/
+
+# 本地环境变量覆盖
+.env
+.env.*
+!.env.example
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 日志与临时文件
+*.log
+npm-debug.log*
+*.tmp
+*.bak

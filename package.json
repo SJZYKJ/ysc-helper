@@ -1,0 +1,16 @@
+{
+  "name": "ysc-helper",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "影视仓接口助手 Web/Docker 版（零依赖 Node 服务端：抓取/分析/测速/持久化）",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node test/smoke.mjs",
+    "docker": "docker compose up -d --build",
+    "docker:down": "docker compose down"
+  }
+}

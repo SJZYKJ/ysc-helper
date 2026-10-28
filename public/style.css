@@ -1,0 +1,158 @@
+/* ==========================================================================
+   影视仓接口助手 · Web 版样式
+   配色变量 / 圆角 / 阴影 / 深色模式继承自 APK 原页面
+   （reference/apk/assets/index.html 的 <style> 段），Web 版仅补充：
+   .hint（原页面缺失）、.notice（上次结果可恢复提示条）、.adv（高级选项折叠区）、
+   a.btn-ghost（下载配置改为链接）、.progress-actions（取消任务）。
+   ========================================================================== */
+
+/* ===== 主题变量（浅色默认，深色跟随系统） ===== */
+:root {
+  --bg:#f1f5f9; --bg2:#e2e8f0; --card:#ffffff; --card2:#f8fafc;
+  --text:#0f172a; --muted:#64748b; --line:#e2e8f0;
+  --primary:#2563eb; --primary-2:#7c3aed; --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
+  --shadow:0 1px 3px rgba(15,23,42,.08),0 4px 12px rgba(15,23,42,.06);
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:#0f172a; --bg2:#0b1220; --card:#1e293b; --card2:#16223a;
+    --text:#e2e8f0; --muted:#94a3b8; --line:#334155;
+    --shadow:0 1px 3px rgba(0,0,0,.4),0 4px 12px rgba(0,0,0,.3);
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background:var(--bg); color:var(--text); font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+       min-height:100vh; -webkit-tap-highlight-color:transparent; padding-bottom:76px; }
+.app { max-width:760px; margin:0 auto; }
+
+/* ===== 顶栏 ===== */
+.topbar { position:sticky; top:0; z-index:20; background:color-mix(in srgb, var(--bg) 86%, transparent);
+         backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+         border-bottom:1px solid var(--line); padding:14px 18px 12px; }
+.topbar h1 { font-size:19px; font-weight:800; letter-spacing:.01em; }
+.topbar .sub { color:var(--muted); font-size:11px; margin-top:2px; }
+
+/* ===== 页面面板 ===== */
+.pane { display:none; padding:16px 16px 8px; animation:fadeIn .25s ease; }
+.pane.active { display:block; }
+@keyframes fadeIn { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+.panel { background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+         box-shadow:var(--shadow); padding:16px; margin-bottom:14px; }
+
+/* ===== 主按钮 ===== */
+.btn-main { width:100%; display:flex; align-items:center; justify-content:center; gap:8px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2)); color:#fff; border:none;
+  border-radius:12px; padding:14px 18px; font-size:15px; font-weight:700; cursor:pointer;
+  box-shadow:0 4px 16px rgba(37,99,235,.35); transition:transform .12s, opacity .12s; }
+.btn-main:hover { opacity:.92; }
+.btn-main:active { transform:scale(.98); }
+.btn-main:disabled { background:var(--line); color:var(--muted); box-shadow:none; cursor:not-allowed; }
+.btn-ghost { background:transparent; color:var(--primary); border:1px solid var(--line);
+  border-radius:10px; padding:10px 14px; font-size:13px; font-weight:600; cursor:pointer;
+  transition:background .12s; display:inline-flex; align-items:center; justify-content:center;
+  gap:4px; line-height:1.2; white-space:nowrap; text-decoration:none; }
+.btn-ghost:hover { background:var(--card2); }
+.btn-ghost.green { color:var(--ok); }
+.btn-ghost:disabled { color:var(--muted); cursor:not-allowed; }
+.btn-ghost.disabled, .btn-ghost[aria-disabled="true"] { color:var(--muted); cursor:not-allowed; opacity:.6; }
+
+/* ===== 进度 ===== */
+.progress-wrap { margin-top:14px; }
+.progress-stage { font-size:13px; color:var(--primary); margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; font-weight:600; }
+.progress-info { color:var(--muted); font-size:11px; margin-bottom:6px; word-break:break-all; }
+.progress { height:10px; background:var(--bg2); border-radius:999px; overflow:hidden; }
+.progress > div { height:100%; width:0; background:linear-gradient(90deg,var(--primary),var(--primary-2)); border-radius:999px; transition:width .35s ease; }
+.progress-pct { font-size:12px; color:var(--muted); margin-left:8px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.progress-actions { display:flex; justify-content:flex-end; margin-top:10px; }
+.progress-actions .btn-ghost { padding:6px 12px; font-size:12px; }
+
+/* ===== 统计卡片 ===== */
+.cards { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; text-align:center; }
+.card .num { font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); }
+.card.ok .num { color:var(--ok); }
+.card .label { color:var(--muted); font-size:11px; margin-top:2px; }
+
+/* ===== 筛选 ===== */
+.filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+.filters input[type=text] { background:var(--card); color:var(--text); border:1px solid var(--line); border-radius:10px;
+    padding:9px 12px; font-size:13px; flex:1 1 100%; outline:none; }
+.filters input[type=text]:focus { border-color:var(--primary); }
+.filters select { background:var(--card); color:var(--text); border:1px solid var(--line); border-radius:10px; padding:8px; font-size:12px; outline:none; }
+.filters label { color:var(--muted); font-size:11px; }
+.count { color:var(--muted); font-size:11px; margin-left:auto; }
+
+/* ===== 结果卡片列表 ===== */
+.line-list { display:flex; flex-direction:column; gap:10px; }
+.line-card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+             box-shadow:var(--shadow); transition:border-color .12s; }
+.line-card:hover { border-color:var(--primary-2); }
+.line-card.bad { opacity:.62; }
+.line-card .head { display:flex; align-items:center; gap:8px; }
+.line-card .name { font-weight:700; font-size:13px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.line-card .url { color:var(--muted); font-size:10px; margin-top:3px; word-break:break-all; }
+.line-card .err { color:var(--bad); font-size:10px; margin-top:3px; }
+.line-card .meta { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; align-items:center; }
+.line-card .meta .stat { font-size:11px; color:var(--muted); display:inline-flex; align-items:center; gap:3px; }
+.line-card .meta .stat b { color:var(--text); font-variant-numeric:tabular-nums; }
+.badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:999px; color:#fff; font-size:10px;
+         font-weight:600; letter-spacing:.02em; }
+
+/* ===== Tab 容器 ===== */
+#tree .empty, #tree .loading { color:var(--muted); text-align:center; padding:40px 16px; font-size:13px; line-height:1.7; }
+#tree .loading { color:var(--primary); }
+
+/* ===== 底部导航 ===== */
+.tabbar { position:fixed; bottom:0; left:0; right:0; z-index:30; max-width:760px; margin:0 auto;
+  background:var(--card); border-top:1px solid var(--line); display:flex; padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+  box-shadow:0 -2px 12px rgba(0,0,0,.06); }
+.tab-btn { flex:1; background:transparent; border:none; color:var(--muted); font-size:11px; cursor:pointer;
+  padding:6px 0 4px; display:flex; flex-direction:column; align-items:center; gap:3px; border-radius:10px; transition:color .12s; }
+.tab-btn .ic { font-size:18px; line-height:1; }
+.tab-btn.active { color:var(--primary); font-weight:700; }
+.tab-btn.active .ic { transform:scale(1.08); }
+
+/* ===== 历史 ===== */
+.hist-item { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+  margin-bottom:10px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:border-color .12s; }
+.hist-item:hover { border-color:var(--primary-2); }
+.hist-item .h-info { flex:1 1 140px; min-width:0; }
+.hist-item .h-title { font-weight:700; font-size:13px; }
+.hist-item .h-sub { color:var(--muted); font-size:11px; margin-top:2px; }
+.hist-item .btn-ghost { padding:8px 10px; font-size:12px; flex:0 0 auto; }
+.hist-empty { color:var(--muted); text-align:center; padding:46px 16px; font-size:13px; }
+
+/* ===== Toast ===== */
+.toast { position:fixed; left:50%; bottom:92px; transform:translateX(-50%) translateY(10px); background:var(--text); color:var(--bg);
+  padding:10px 18px; border-radius:999px; font-size:12px; font-weight:600; display:none; z-index:99;
+  box-shadow:0 8px 24px rgba(0,0,0,.25); max-width:88%; opacity:0; transition:opacity .2s, transform .2s; }
+.toast.show { display:block; opacity:1; transform:translateX(-50%); }
+
+/* ===== 说明文字（原页面缺失 .hint 样式，此处补齐） ===== */
+.hint { color:var(--muted); font-size:11px; line-height:1.7; margin-top:12px; }
+
+/* ===== 上次结果可恢复提示条（Web 版新增） ===== */
+.notice { display:flex; align-items:center; gap:10px; background:var(--card2); border:1px solid var(--line);
+  border-radius:12px; padding:10px 12px; margin-bottom:12px; font-size:12px; color:var(--muted); cursor:pointer; }
+.notice[hidden] { display:none; }
+.notice span { flex:1; min-width:0; }
+.notice .btn-ghost { padding:6px 10px; font-size:12px; flex:0 0 auto; }
+
+/* ===== 高级选项折叠区（Web 版新增） ===== */
+.adv { margin-top:14px; border-top:1px dashed var(--line); padding-top:12px; }
+.adv > summary { cursor:pointer; font-size:12px; font-weight:600; color:var(--muted);
+  display:flex; align-items:center; gap:6px; list-style:none; }
+.adv > summary::-webkit-details-marker { display:none; }
+.adv > summary::after { content:"展开"; margin-left:auto; color:var(--primary); font-weight:600; }
+.adv[open] > summary::after { content:"收起"; }
+.adv-body { display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+.field { display:flex; flex-direction:column; gap:6px; font-size:11px; color:var(--muted); }
+.field input[type=number], .field textarea { background:var(--card2); color:var(--text); border:1px solid var(--line);
+  border-radius:10px; padding:9px 12px; font-size:13px; font-family:inherit; outline:none; width:100%; }
+.field input[type=number]:focus, .field textarea:focus { border-color:var(--primary); }
+.field textarea { resize:vertical; min-height:84px; line-height:1.5; }
+.field.check { flex-direction:row; align-items:center; gap:8px; font-size:12px; color:var(--text); }
+.field.check input[type=checkbox] { width:16px; height:16px; accent-color:var(--primary); flex:0 0 auto; }
+.field input:disabled, .field textarea:disabled { opacity:.55; }

@@ -1,0 +1,45 @@
+# 影视仓接口助手 · Web/Docker 版
+# 启动：docker compose up -d --build   →  http://127.0.0.1:8080
+# 显式 project name：避免因仓库目录名为中文/非 ASCII 导致 compose 推导出空项目名而报错
+name: ysc-helper
+
+services:
+  ysc-helper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # 国内网络拉不到 Docker Hub 时覆盖，例如：
+        #   BASE_IMAGE=docker.1ms.run/library/node:22-alpine docker compose up -d --build
+        BASE_IMAGE: ${BASE_IMAGE:-node:22-alpine}
+    image: ysc-helper:1.0.0
+    container_name: ysc-helper
+    ports:
+      - "8080:8080"
+    environment:
+      TZ: Asia/Shanghai
+      PORT: "8080"
+      HOST: 0.0.0.0
+      DATA_DIR: /app/data
+      ALLOW_PRIVATE_TARGETS: "0"   # 置 1 才允许抓内网/回环地址（本地调试用）
+      SCAN_CONCURRENCY: "8"
+      REQUEST_TIMEOUT_MS: "8000"
+      MAX_HISTORY: "20"
+      # 非空即为全站（/api/health 除外）启用 HTTP Basic 认证；建议写在同目录 .env 里
+      BASIC_AUTH: "${BASIC_AUTH:-}"
+    volumes:
+      # 用命名卷而非 ./data 绑定挂载：命名卷首次创建时会继承镜像内 /app/data 的属主(nodejs:10001)，
+      # 容器以非 root 运行也能正常写历史。若坚持绑定挂载，需先执行：
+      #   mkdir -p data && sudo chown -R 10001:10001 data
+      - ysc-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/api/health').then(r=>r.json()).then(j=>process.exit(j&&j.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
+
+volumes:
+  ysc-data:
+    name: ysc-data

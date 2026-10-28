@@ -1,0 +1,10 @@
+{
+  "_comment": "可选覆盖文件：复制为 config/sources.json 后整体替换内置线路。baseLines 为 [名称, url] 二元组；searchPages 为聚合页 URL 列表。文件损坏时会回退内置线路并打日志。",
+  "baseLines": [
+    ["高天流云", "https://raw.githubusercontent.com/gaotianliuyun/gao/master/js.json"],
+    ["影视仓聚合", "https://raw.githubusercontent.com/wxrjck/-YSC-/refs/heads/main/wx.json"]
+  ],
+  "searchPages": [
+    "https://raw.githubusercontent.com/FongMi/CatVodSpider/main/json/config.json"
+  ]
+}

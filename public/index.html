@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#2563eb">
+<title>影视仓接口助手 · Web 版</title>
+<link rel="icon" type="image/png" href="/icon.png">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <h1>影视仓接口助手</h1>
+    <div class="sub">Web 版 · 全网搜寻 / 单多仓 / 速度验证</div>
+  </header>
+
+  <!-- Tab1: 任务 -->
+  <section class="pane active" id="pane-task">
+    <!-- 页面加载时有服务端历史记录 → 提示可恢复（点击跳历史页） -->
+    <div class="notice" id="restoreHint" hidden>
+      <span id="restoreHintText">上次结果可恢复</span>
+      <button type="button" class="btn-ghost" id="restoreGo">去历史页</button>
+    </div>
+
+    <div class="panel">
+      <button type="button" id="searchBtn" class="btn-main">🔍 全网搜寻和验证</button>
+
+      <div class="progress-wrap" id="progressWrap" style="display:none">
+        <div class="progress-stage">
+          <span id="stageText">准备中...</span>
+          <span class="progress-pct" id="pctText">0%</span>
+        </div>
+        <div class="progress-info" id="progressInfo"></div>
+        <div class="progress"><div id="progressBar"></div></div>
+        <div class="progress-actions">
+          <button type="button" id="cancelBtn" class="btn-ghost" hidden>✕ 取消任务</button>
+        </div>
+      </div>
+
+      <p class="hint" id="hint">点击按钮 → 服务端自动搜集网络公开线路并验证（单仓 / 多仓 / 测速）。结果保存在服务端历史，可随时在「结果」「历史」中查看。</p>
+
+      <!-- 高级选项：默认收起 -->
+      <details class="adv" id="advOptions">
+        <summary>⚙ 高级选项</summary>
+        <div class="adv-body">
+          <label class="field" for="optConcurrency">
+            <span>并发数（1-32）</span>
+            <input type="number" id="optConcurrency" min="1" max="32" step="1" value="8" inputmode="numeric">
+          </label>
+          <label class="field" for="optTimeout">
+            <span>单次超时（毫秒，1000-30000）</span>
+            <input type="number" id="optTimeout" min="1000" max="30000" step="500" value="8000" inputmode="numeric">
+          </label>
+          <label class="field check" for="optUseSearch">
+            <input type="checkbox" id="optUseSearch" checked>
+            <span>抓取聚合页搜集更多线路</span>
+          </label>
+          <label class="field check" for="optIncludeBase">
+            <input type="checkbox" id="optIncludeBase" checked>
+            <span>包含内置基础线路库</span>
+          </label>
+          <label class="field" for="optExtra">
+            <span>自定义线路（每行一条：url 或 名称|url）</span>
+            <textarea id="optExtra" rows="4" spellcheck="false" placeholder="http://example.com/tv&#10;我的线路|https://example.com/api.json"></textarea>
+          </label>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- Tab2: 结果 -->
+  <section class="pane" id="pane-result">
+    <div id="summary"></div>
+    <div class="filters" id="filters" style="display:none">
+      <input type="text" id="kw" placeholder="搜索名称或地址...">
+      <label for="f-kind">类型</label>
+      <select id="f-kind">
+        <option value="">全部</option>
+        <option value="single">单线路</option>
+        <option value="multi_storehouse">多仓</option>
+        <option value="multi_urls">多仓(urls)</option>
+        <option value="unknown">未知</option>
+      </select>
+      <label for="f-status">状态</label>
+      <select id="f-status">
+        <option value="">全部</option>
+        <option value="ok">可用</option>
+        <option value="bad">不可用</option>
+      </select>
+      <label for="f-speed">速度</label>
+      <select id="f-speed">
+        <option value="">全部</option>
+        <option value="快">快</option>
+        <option value="中">中</option>
+        <option value="慢">慢</option>
+        <option value="不可用">不可用</option>
+      </select>
+      <span class="count" id="cnt"></span>
+      <a class="btn-ghost green disabled" id="dlAll" aria-disabled="true" role="button">⬇ 下载配置</a>
+      <button type="button" class="btn-ghost" id="copyBtn">📋 复制 JSON</button>
+    </div>
+    <div id="tree"></div>
+  </section>
+
+  <!-- Tab3: 历史 -->
+  <section class="pane" id="pane-history">
+    <div id="historyList"></div>
+  </section>
+</div>
+
+<nav class="tabbar">
+  <button type="button" class="tab-btn active" data-tab="task"><span class="ic">🔍</span>任务</button>
+  <button type="button" class="tab-btn" data-tab="result"><span class="ic">📊</span>结果</button>
+  <button type="button" class="tab-btn" data-tab="history"><span class="ic">🕘</span>历史</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>
