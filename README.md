@@ -207,7 +207,19 @@ Windows PowerShell 下 `npm test` 可能被执行策略拦截，直接用 `node 
 
 ## 发布镜像 / 同步到 GitHub
 
-本机构建后推到自己的 Docker Hub（把 `<your-dockerhub-id>` 换成你的账号）：
+仓库已接入 CI：push 到 `main` 会自动构建并发布到 **GHCR**
+（`ghcr.io/<用户名>/ysc-helper:latest`，另带 `:sha-xxxxxxx` 与版本 tag）。
+
+本机推 Docker Hub 用脚本（交互式输入 Access Token，不会把 token 写进任何文件）：
+
+```powershell
+.\scripts\publish-dockerhub.ps1 -User <your-dockerhub-id>
+```
+```bash
+./scripts/publish-dockerhub.sh <your-dockerhub-id>
+```
+
+手工等价的命令（把 `<your-dockerhub-id>` 换成你的账号）：
 
 ```bash
 docker login -u <your-dockerhub-id>
