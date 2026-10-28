@@ -20,12 +20,9 @@ docker run -d --name ysc-helper -p 3080:8080 -v /root/ysc:/app/data \
   --restart unless-stopped chungg/ysc-helper:latest
 ```
 
-把原 `影视仓接口助手_1.0.apk`（82 KB 的 WebView 壳 + 单文件 HTML）改造成**不依赖 Android、可网页访问、可 Docker 部署**的服务。
+**不依赖 Android、可网页访问、可 Docker 部署**的服务。
 
-原 APK 的全部逻辑都在 `assets/index.html` 里：抓取公开线路 → 递归识别单仓/多仓 → 多采样测速 → 生成影视仓可直接导入的 `{"urls":[...]}` 配置。
-其中"抓取"依赖 Java 桥 `YscAndroid.captureAsync` 来绕过浏览器 CORS —— 这正是它不能直接当网页用的根因。
-
-Web 版把这一步挪到服务端：**零依赖 Node 服务端**负责抓取/分析/测速/持久化，浏览器只管 UI。
+服务端：**零依赖 Node 服务端**负责抓取/分析/测速/持久化，浏览器只管 UI。
 
 ```
 浏览器 (public/)  ──HTTP + SSE──▶  Node 服务端 (server.mjs + src/)  ──HTTPS──▶  各线路源站
@@ -76,7 +73,6 @@ Web 版把这一步挪到服务端：**零依赖 Node 服务端**负责抓取/�
 │  ├─ API.md             # 接口契约（前后端唯一约定）
 │  ├─ backend-selftest.md# 服务端自测报告
 │  └─ screenshots/       # 界面截图
-├─ reference/apk/        # 原 APK 解包产物（仅存档对照，不参与运行）
 ├─ Dockerfile
 └─ docker-compose.yml
 ```
@@ -257,16 +253,6 @@ docker run --rm -v "$PWD:/app" -w /app --entrypoint node ysc-helper:1.0.0 test/s
 
 Windows PowerShell 下 `npm test` 可能被执行策略拦截，直接用 `node test/smoke.mjs` 最稳。
 
-## 与 APK 版的差异
-
-| 能力 | APK 版 | Web 版 |
-|---|---|---|
-| 抓取 | Java 桥 `captureAsync`（绕 CORS） | 服务端直连，能力等价 |
-| 运行位置 | 手机本地 | 服务端（可 7×24） |
-| 页面关闭 | 任务中断 | 任务继续，重连即见 |
-| 结果存储 | `localStorage`（本机 8 条） | 服务端磁盘（多设备共享） |
-| 配置下载 | 系统「另存为」对话框 | 浏览器下载 / 复制 JSON |
-| 网络要求 | 手机直连 | 服务器可出网（国内源站建议境外/国内均可达的出口） |
 
 ## 已知限制
 
