@@ -226,7 +226,15 @@ docker push <your-dockerhub-id>/ysc-helper:latest
 | `DOCKERHUB_USERNAME` | Docker Hub 用户名 |
 | `DOCKERHUB_TOKEN` | Docker Hub Access Token（Read & Write，**不要用账号密码**） |
 
-未配置 secret 时工作流只构建不推送（不会因为缺凭据失败）。
+不配任何 secret 也能用：工作流默认把镜像推到 **GHCR**（GitHub 自带镜像仓库），地址为
+`ghcr.io/<用户名>/ysc-helper:latest`，用仓库自带的 `GITHUB_TOKEN` 认证，无需额外配置。
+
+```bash
+docker pull ghcr.io/<用户名>/ysc-helper:latest
+```
+
+注意：GHCR 包首次发布后默认是 **Private**，需要在仓库首页右侧 Packages 里把包的可见性改成 Public，
+否则别人（以及没登录的机器）`docker pull` 会 401。
 
 ## 许可
 
